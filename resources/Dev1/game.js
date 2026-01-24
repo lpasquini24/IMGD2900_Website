@@ -43,16 +43,22 @@ Data structure to store the positions of all falling blocks in the world.
  */
 
 // stores a list of all of the physics blocks
+
 var blocks = [];
 
 var board_size = 12;
 
 // used for handling physics block collisions
-var occupied = //new Array(board_size).fill(new Array(board_size.fill(0)));
-Array.from({ length: board_size}, () => new Array(board_size).fill(0));
+var occupied = Array.from({ length: board_size}, () => new Array(board_size).fill(0));
 
+// used for switching directions using the spacebar
 var dir_offset = 0;
 
+// used for storing the state of the walls
+var left_border_on = true;
+var right_border_on = true;
+var top_border_on = true;
+var bottom_border_on = true;
 
 /*
 PS.init( system, options )
@@ -88,12 +94,138 @@ PS.init = function( system, options ) {
 	// Uncomment the following code line and
 	// change the string parameter as needed.
 
+	// initial settings
 	PS.statusText( "Gravity Blocks" );
+	PS.fade(PS.ALL, PS.ALL, 4);
+	PS.border(PS.ALL, PS.ALL, 0);
 
-	PS.timerStart (5, PS.hello);
+	// initialize corner blocks
+	occupied[0][0] = 1;
+	occupied[0][board_size - 1] = 1;
+	occupied[board_size - 1][0] = 1;
+	occupied[board_size - 1][board_size - 1] = 1;
+
+	PS.color(0, 0, PS.COLOR_BLACK);
+	PS.color(0, board_size - 1, PS.COLOR_BLACK);
+	PS.color(board_size - 1, 0, PS.COLOR_BLACK);
+	PS.color(board_size - 1, board_size - 1, PS.COLOR_BLACK);
+
+	// turn borders on
+	PS.setLeftBorder(true);
+	PS.setRightBorder(true);
+	PS.setTopBorder(true);
+	PS.setBottomBorder(true);
+
+
+
+	PS.timerStart (7, PS.hello);
+
 
 	// Add any other initialization code you need here.
 };
+
+PS.setLeftBorder = function(on){
+	let x = 0;
+	left_border_on = on;
+	for(let y = 1; y < board_size -1; y++){
+		PS.drawWall(x, y);
+		if(on) {
+			occupied[x][y] = 1;
+		}else{
+			occupied[x][y] = 0;
+		}
+	}
+};
+
+PS.setRightBorder = function(on){
+	let x = board_size - 1;
+	right_border_on = on;
+	for(let y = 1; y < board_size -1; y++){
+		PS.drawWall(x, y);
+		if(on) {
+			occupied[x][y] = 1;
+		}else{
+			occupied[x][y] = 0;
+		}
+	}
+};
+
+PS.setTopBorder = function(on){
+	let y = 0;
+	top_border_on = on;
+	for(let x = 1; x < board_size -1; x++){
+		PS.drawWall(x, y);
+		if(on) {
+			occupied[x][y] = 1;
+		}else{
+			occupied[x][y] = 0;
+		}
+	}
+};
+
+PS.setBottomBorder = function(on){
+	let y = board_size - 1;
+	bottom_border_on = on;
+	for(let x = 1; x < board_size - 1; x++){
+		PS.drawWall(x, y);
+		if(on) {
+			occupied[x][y] = 1;
+		}else{
+			occupied[x][y] = 0;
+		}
+	}
+};
+
+
+// 5 is down, 6 is left, 7 is up, 8 is right
+PS.getWallColor = function(dir){
+	return PS.dirToColor(((dir - (dir_offset % 4)) % 4) + 1);
+};
+
+PS.drawWall = function(x, y){
+	let dir = 0;
+	// determine which wall its on
+	// 5 is down, 6 is left, 7 is up, 8 is right
+	if (y == board_size - 1) dir = 5;
+	if (x == 0) dir = 6;
+	if (y == 0) dir = 7;
+	if (x == board_size - 1) dir = 8;
+
+	PS.color(x, y, PS.getWallColor(dir));
+	PS.border(x, y, 10);
+	PS.borderColor(x, y, PS.COLOR_BLACK);
+
+	let solid_alpha = 255;
+	let faded_alpha = 100;
+
+
+	switch(dir){
+		case 5:
+			PS.alpha(x, y, bottom_border_on ? solid_alpha : faded_alpha);
+			PS.borderAlpha(x, y, bottom_border_on ? solid_alpha : faded_alpha);
+			break;
+		case 6:
+			PS.alpha(x, y, left_border_on ? solid_alpha : faded_alpha);
+			PS.borderAlpha(x, y, left_border_on ? solid_alpha : faded_alpha);
+			break;
+		case 7:
+			PS.alpha(x, y, top_border_on ? solid_alpha : faded_alpha);
+			PS.borderAlpha(x, y, top_border_on ? solid_alpha : faded_alpha);
+			break;
+		case 8:
+			PS.alpha(x, y, right_border_on ? solid_alpha : faded_alpha);
+			PS.borderAlpha(x, y, right_border_on ? solid_alpha : faded_alpha);
+			break;
+		default:
+			PS.alpha(x, y, solid_alpha);
+			break;
+	}
+
+
+
+	return;
+};
+
 
 PS.hello = function()
 {
@@ -113,20 +245,76 @@ PS.hello = function()
 			var newy = oldy + movevec.y;
 
             // move only if the new position is unoccupied
-			if (PS.coordInBounds(newx, newy) && occupied[newx][newy] == 0) {
-				PS.moveBlock(block, oldx, oldy, newx, newy);
-			}
+
+			PS.moveBlock(block, oldx, oldy, newx, newy);
+
 		}
 	}
 };
 
 PS.coordInBounds = function(x, y){
 	return (x > -1 && x < board_size && y > -1 && y < board_size);
-}
+};
+
+PS.coordWithnWalls = function(x, y){
+	return (x > 0 && x < board_size - 1 && y > 0 && y < board_size - 1);
+};
+
+PS.coordIsWalls = function(x, y){
+	return (x == 0 || x == board_size - 1 || y == 0 || y == board_size - 1);
+};
+
+PS.drawBlock = function(block){
+	PS.color(block.x, block.y, PS.dirToColor(block.dir));
+	PS.glyph(block.x, block.y, PS.dirToGlyph(block.dir));
+	PS.border(block.x, block.y, 2);
+	PS.alpha(block.x, block.y, 255);
+	PS.borderAlpha(block.x, block.y, 255);
+	PS.borderColor(block.x, block.y, PS.COLOR_BLACK);
+};
+
+PS.drawEmpty = function(x, y){
+	PS.border(x, y, 0);
+
+	if(PS.coordIsWalls(x, y)){
+		PS.drawWall(x, y);
+	}else {
+		PS.color(x, y, 0xFFFFFF);
+	}
+
+	PS.glyph(x, y, 0);
+};
+
+
+PS.placeBlock = function(x, y, locked, dir){
+	// do not place blocks out of bounds
+	if(!PS.coordInBounds(x, y)) return;
+	// do not place blocks on top of other blocks
+	if(occupied[x][y] != 0) return;
+	// update occupied array
+	occupied[x][y] = 1;
+	// add block to blocks array
+	let b = {x: x, y: y, locked: locked, dir: dir, falling: false};
+	blocks.push(b);
+	// render block
+	PS.drawBlock(b);
+};
 
 PS.moveBlock = function(block, oldx, oldy, newx, newy){
-	// bounds checking
-	if(!PS.coordInBounds(newx, newy)) return;
+	// if moving out of bounds, remove it
+	if (!PS.coordInBounds(newx, newy)){
+		PS.audioPlay("fx_swoosh", {volume: 0.015});
+		PS.removeBlock(block);
+		return;
+	}
+
+	if(occupied[newx][newy] != 0){
+		if(block.falling == true) {
+			PS.audioPlay("fx_click", {volume: 0.1});
+			block.falling = false;
+		}
+		return;
+	}
 
 	// update occupied array
 	occupied[oldx][oldy] = 0;
@@ -136,10 +324,14 @@ PS.moveBlock = function(block, oldx, oldy, newx, newy){
 	block.x = newx;
 	block.y = newy;
 
+	// set falling to true
+	block.falling = true;
+
 	// hide old block
-	PS.color(oldx, oldy, 255, 255, 255);
+	PS.drawEmpty(oldx, oldy);
+
 	// draw new block
-	PS.color(newx, newy, PS.dirToColor(block.dir));
+	PS.drawBlock(block);
 };
 
 PS.removeBlock = function(block){
@@ -151,7 +343,16 @@ PS.removeBlock = function(block){
 	// remove block from blocks array
 	blocks.splice(index, 1);
 	// remove block from screen
-	PS.color(x, y, 255, 255, 255);
+	PS.drawEmpty(block.x, block.y);
+};
+
+PS.getBlock = function(x,y){
+	for(let block of blocks){
+		if(block.x == x && block.y == y){
+			return block;
+		}
+	}
+	return null;
 }
 
 /*
@@ -175,32 +376,39 @@ PS.dirToVector = function(dir){
 		case 4:
 			return {x: -1, y: 0};
 	}
-}
+};
+
+PS.dirToGlyph = function(dir){
+	switch(1 + ((dir + dir_offset) % 4)){
+		case 0:
+			return 0;
+		case 1:
+			return "˄";
+		case 2:
+			return "˃";
+		case 3:
+			return "˅";
+		case 4:
+			return "˂";
+	}
+};
 
 PS.dirToColor = function(dir){
 	switch(dir){
 		case 0:
-			return PS.COLOR_BLACK;
+			return 0x264653;
 		case 1:
-			return PS.COLOR_RED;
+			return 0xFF595E;
 		case 2:
-			return PS.COLOR_BLUE;
+			return 0xFFCA3A;
 		case 3:
-			return PS.COLOR_GREEN;
+			return 0x8AC926;
 		case 4:
-			return PS.COLOR_YELLOW;
+			return 0x1982C4;
 	}
-}
-
-PS.placeBlock = function(x, y, locked, dir){
-	if(!PS.coordInBounds(x, y)) return;
-	// update occupied array
-	occupied[x][y] = 1;
-	// add block to blocks array
-	blocks.push({x: x, y: y, locked: locked, dir: dir});
-	// render block
-	PS.color(x, y, PS.dirToColor(dir));
 };
+
+
 
 /*
 PS.touch ( x, y, data, options )
@@ -220,7 +428,42 @@ PS.touch = function( x, y, data, options ) {
 
 	// Add code here for mouse clicks/touches
 	// over a bead.
-	PS.placeBlock(x, y, false, PS.random(4));
+
+	// see if we are toggling a border
+	if(x == 0){
+		PS.setLeftBorder(!left_border_on);
+		PS.audioPlay("perc_block_low", {volume: 0.08});
+	}
+	if (x == board_size - 1){
+		PS.setRightBorder(!right_border_on);
+		PS.audioPlay("perc_block_low", {volume: 0.08});
+	}
+	if(y == 0){
+		PS.setTopBorder(!top_border_on);
+		PS.audioPlay("perc_block_low", {volume: 0.08});
+	}
+	if(y == board_size - 1){
+		PS.setBottomBorder(!bottom_border_on);
+		PS.audioPlay("perc_block_low", {volume: 0.08});
+	}
+
+	if(!PS.coordWithnWalls(x, y)) return;
+
+	// spawn beads
+	if(occupied[x][y] == 0) {
+		// spawn a block when clicking on an unoccupied spac
+		PS.audioPlay("fx_rip", {volume: 0.05});
+		PS.placeBlock(x, y, false, PS.random(4));
+	}else{
+		let b = PS.getBlock(x, y);
+		if (b != null && !b.locked){
+			// change the color of a block if it is clicked on
+			PS.audioPlay("perc_shaker", {volume: 0.08});
+			b.dir = ((b.dir % 4) + 1);
+			PS.drawBlock({x: x, y: y, locked: false, dir: b.dir, falling: false});
+		}
+	}
+
 };
 
 /*
@@ -257,6 +500,11 @@ PS.enter = function( x, y, data, options ) {
 	// PS.debug( "PS.enter() @ " + x + ", " + y + "\n" );
 
 	// Add code here for when the mouse cursor/touch enters a bead.
+	// allows you to click and drag to spawn blocks
+	if(options.touching && occupied[x][y] ==0){
+		PS.audioPlay("fx_rip", {volume: 0.03});
+		PS.placeBlock(x, y, false, PS.random(4));
+	}
 };
 
 /*
@@ -308,7 +556,19 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	// PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
 	// Add code here for when a key is pressed.
+	PS.audioPlay("fx_powerup3", {volume: 0.05});
 	dir_offset += 1;
+	PS.updateBlockGraphics();
+	PS.setTopBorder(top_border_on);
+	PS.setRightBorder(right_border_on);
+	PS.setBottomBorder(bottom_border_on);
+	PS.setLeftBorder(left_border_on);
+};
+
+PS.updateBlockGraphics = function() {
+	for(let b of blocks){
+		PS.drawBlock(b);
+	}
 };
 
 /*
