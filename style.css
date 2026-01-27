@@ -25,11 +25,11 @@
     row-gap: 20px;
 }
 
-.games_container a {
+.games_container div {
     background-color: #ff9b54;
-    padding: 10px;
     border-radius: 5px;
     border: 5px solid #000;
+    text-align: center;
 }
 
 .game_link h2 {
@@ -37,9 +37,7 @@
     color: #000;
 }
 
-a {
-    text-decoration: none !important;
-}
+
 
 .game_link{
     display: flex;
