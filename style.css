@@ -16,6 +16,9 @@
     border: 5px solid #000;
     width: 200px;
     height: 200px;
+    image-rendering: -webkit-optimize-contrast; /* Safari */
+    image-rendering: pixelated;                /* Chrome, Firefox */
+
 }
 
 .games_container {
@@ -36,8 +39,6 @@
     text-align: center;
     color: #000;
 }
-
-
 
 .game_link{
     display: flex;
