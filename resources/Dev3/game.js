@@ -92,7 +92,7 @@ PS.init = function( system, options ) {
 	// Uncomment the following code line and change
 	// the x and y parameters as needed.
 
-	PS.gridSize( board_size, board_size + 2);
+	PS.gridSize( board_size, board_size );
 
 	// This is also a good place to display
 	// your game title or a welcome message
