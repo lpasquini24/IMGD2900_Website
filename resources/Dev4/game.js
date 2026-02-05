@@ -161,7 +161,7 @@ PS.init = function( system, options ) {
 	// change the string parameter as needed.
 
 	// initial settings
-	PS.statusText( "Slider");
+	PS.statusText( "Sliders");
 
 	PS.timerStart (7, PS.update);
 
