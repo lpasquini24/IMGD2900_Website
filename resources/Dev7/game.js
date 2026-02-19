@@ -51,15 +51,15 @@ Any value returned is ignored.
 PS.init = function( system, options ) {
     var myImage, mySprite;
 
-    PS.imageLoad( "Images/UmbrellaCat-Down.bmp", function (data) {
+    PS.imageLoad( "Images/UmbrellaCat-Down.png", function (data) {
         myImage = data; // save image ID
 
         // Create an image sprite from the loaded image
         // Save sprite ID for later reference
 
         mySprite = PS.spriteImage( myImage );
-        PS.showSprite(mySprite, true);
-        PS.spriteMove(mySprite, 10, 10);
+        PS.spriteShow(mySprite, true);
+        PS.spriteMove(mySprite, 2, 2);
     } );
 };
 
