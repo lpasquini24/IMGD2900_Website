@@ -58,6 +58,8 @@ PS.init = function( system, options ) {
         // Save sprite ID for later reference
 
         mySprite = PS.spriteImage( myImage );
+        PS.showSprite(mySprite, true);
+        PS.spriteMove(mySprite, 10, 10);
     } );
 };
 
