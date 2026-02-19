@@ -50,13 +50,22 @@ Any value returned is ignored.
 
 var catUpSprites = [];
 var catDownSprites = [];
+var keys = ["A", "S", "D", "F"]
+var activeCat = -1;
+var raindrops = [];
+
+var width = 28;
+var height = 28;
 
 PS.init = function( system, options ) {
     PS.debug("PS.init called!");
 
-    PS.gridSize(31, 31);
+
+    PS.gridSize(width, height);
+
+
     PS.border(PS.ALL, PS.ALL, 0);
-    PS.color(PS.ALL, PS.ALL, PS.COLOR_BLUE);
+    PS.color(PS.ALL, PS.ALL, PS.COLOR_WHITE);
 
 
     // Load images
@@ -64,13 +73,16 @@ PS.init = function( system, options ) {
     PS.imageLoad( "Images/UmbrellaCat-Up.png", function (data) {
         umbrellaCatUpImage = data; // save image ID
         // create sprites from images
-        for(let i = 0; i < 5; i++)
+        for(let i = 0; i < 4; i++)
         {
             let umbrellaCatUpSprite = PS.spriteImage(umbrellaCatUpImage);
             // place some images!
             PS.spriteShow(umbrellaCatUpSprite, false);
             PS.spriteAxis(umbrellaCatUpSprite, 0, 8);
-            PS.spriteMove(umbrellaCatUpSprite, 6 * i, 31);
+            PS.spriteMove(umbrellaCatUpSprite, 7 * i, height);
+            PS.glyph((7 * i) + 3, height - 7, keys[i]);
+            PS.glyphColor((7 * i) + 3, height - 7, PS.COLOR_WHITE);
+            PS.glyphScale((7 * i) + 3, height - 7, 100);
 
             catUpSprites.push(umbrellaCatUpSprite);
         }
@@ -81,18 +93,86 @@ PS.init = function( system, options ) {
     PS.imageLoad( "Images/UmbrellaCat-Down.png", function (data) {
         umbrellaCatDownImage = data; // save image ID
         // create sprites from images
-        for(let i = 0; i < 5; i++)
+        for(let i = 0; i < 4; i++)
         {
             var umbrellaCatDownSprite = PS.spriteImage( umbrellaCatDownImage );
             PS.spriteShow(umbrellaCatDownSprite, true);
             PS.spriteAxis(umbrellaCatDownSprite, 0, 8);
-            PS.spriteMove(umbrellaCatDownSprite, 6 * i, 31);
+            PS.spriteMove(umbrellaCatDownSprite, 7 * i, height);
 
             catDownSprites.push(umbrellaCatDownSprite);
         }
     } );
 
+    PS.timerStart(3, PS.raindropFall);
+    PS.timerStart(50, PS.raindropSpawn);
 };
+
+PS.raindropSpawn = function(){
+    let x = PS.random(width) - 1;
+    raindrops.push({x: x, y: -1});
+}
+
+
+PS.raindropFall = function() {
+    for(var raindrop of raindrops){
+        // check for collisions
+        if(raindrop.y > (height - 9)){
+            PS.debug(PS.catAtX(raindrop.x));
+
+            // if umbrella of the cat we hit is up, destroy the raindrop
+            if(PS.catAtX(raindrop.x) === activeCat){
+                raindrops.splice(raindrops.indexOf(raindrop), 1);
+                PS.drawEmpty(raindrop.x, raindrop.y);
+                continue;
+            }
+
+            // otherwise, lose game
+            PS.debug("you lose!");
+        }
+
+        // move the raindrop
+        PS.drawEmpty(raindrop.x, raindrop.y);
+        raindrop.y++;
+        PS.drawRaindrop(raindrop);
+    }
+}
+
+PS.isInBounds = function(x, y){
+    return (x >= 0 && x <= 31) && (y >= 0 && y <= 31);
+}
+
+PS.drawEmpty = function(x, y) {
+    if(PS.isInBounds(x, y)) {
+        PS.color(x, y, PS.COLOR_WHITE);
+    }
+    PS.drawCats();
+}
+
+PS.drawRaindrop = function(raindrop) {
+    if(PS.isInBounds(raindrop.x, raindrop.y)) {
+        PS.color(raindrop.x, raindrop.y, PS.COLOR_BLUE);
+    }
+}
+
+PS.catAtX = function(x) {
+    return Math.floor(x / 7);
+}
+
+PS.drawCats = function(){
+    for(let i = 0; i < 4; i++){
+        PS.spriteShow(catDownSprites[i], false);
+        PS.spriteShow(catUpSprites[i], false);
+            
+        if (i === activeCat) {
+
+            PS.spriteShow(catUpSprites[i], true);
+        }else{
+
+            PS.spriteShow(catDownSprites[i], true);
+        }
+    }
+}
 
 /*
 PS.touch ( x, y, data, options )
@@ -195,16 +275,27 @@ This function doesn't have to do anything. Any value returned is ignored.
 
 PS.keyDown = function( key, shift, ctrl, options ) {
 	// Add code here for when a key is pressed.
-    switch(key){
+    switch(key) {
         case 0x0061:
-            PS.spriteShow(catDownSprites[0], false);
-            PS.spriteShow(catUpSprites[0], true);
+            activeCat = 0;
             break;
         case 0x0073:
-            PS.spriteShow(catDownSprites[1], false);
-            PS.spriteShow(catUpSprites[1], true);
+            activeCat = 1;
             break;
+        case 0x0064:
+            activeCat = 2;
+            break;
+        case 0x0066:
+            activeCat = 3;
+            break;
+
+    }
+
+    PS.drawCats();
+    return 0;
 };
+
+PS.
 
 /*
 PS.keyUp ( key, shift, ctrl, options )
@@ -220,7 +311,7 @@ PS.keyUp = function( key, shift, ctrl, options ) {
 	// Uncomment the following code line to inspect first three parameters:
 
 
-    }
+
 };
 
 /*
