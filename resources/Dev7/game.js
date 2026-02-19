@@ -48,19 +48,50 @@ Any value returned is ignored.
 [options : Object] = A JavaScript object with optional data properties; see API documentation for details.
 */
 
+var catUpSprites = [];
+var catDownSprites = [];
+
 PS.init = function( system, options ) {
-    var myImage, mySprite;
+    PS.debug("PS.init called!");
+
+    PS.gridSize(31, 31);
+    PS.border(PS.ALL, PS.ALL, 0);
+    PS.color(PS.ALL, PS.ALL, PS.COLOR_BLUE);
+
+
+    // Load images
+    var umbrellaCatUpImage, umbrellaCatDownImage;
+    PS.imageLoad( "Images/UmbrellaCat-Up.png", function (data) {
+        umbrellaCatUpImage = data; // save image ID
+        // create sprites from images
+        for(let i = 0; i < 5; i++)
+        {
+            let umbrellaCatUpSprite = PS.spriteImage(umbrellaCatUpImage);
+            // place some images!
+            PS.spriteShow(umbrellaCatUpSprite, false);
+            PS.spriteAxis(umbrellaCatUpSprite, 0, 8);
+            PS.spriteMove(umbrellaCatUpSprite, 6 * i, 31);
+
+            catUpSprites.push(umbrellaCatUpSprite);
+        }
+
+    } );
+
 
     PS.imageLoad( "Images/UmbrellaCat-Down.png", function (data) {
-        myImage = data; // save image ID
+        umbrellaCatDownImage = data; // save image ID
+        // create sprites from images
+        for(let i = 0; i < 5; i++)
+        {
+            var umbrellaCatDownSprite = PS.spriteImage( umbrellaCatDownImage );
+            PS.spriteShow(umbrellaCatDownSprite, true);
+            PS.spriteAxis(umbrellaCatDownSprite, 0, 8);
+            PS.spriteMove(umbrellaCatDownSprite, 6 * i, 31);
 
-        // Create an image sprite from the loaded image
-        // Save sprite ID for later reference
-
-        mySprite = PS.spriteImage( myImage );
-        PS.spriteShow(mySprite, true);
-        PS.spriteMove(mySprite, 2, 2);
+            catDownSprites.push(umbrellaCatDownSprite);
+        }
     } );
+
 };
 
 /*
@@ -163,11 +194,16 @@ This function doesn't have to do anything. Any value returned is ignored.
 */
 
 PS.keyDown = function( key, shift, ctrl, options ) {
-	// Uncomment the following code line to inspect first three parameters:
-
-	// PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
-
 	// Add code here for when a key is pressed.
+    switch(key){
+        case 0x0061:
+            PS.spriteShow(catDownSprites[0], false);
+            PS.spriteShow(catUpSprites[0], true);
+            break;
+        case 0x0073:
+            PS.spriteShow(catDownSprites[1], false);
+            PS.spriteShow(catUpSprites[1], true);
+            break;
 };
 
 /*
@@ -183,9 +219,8 @@ This function doesn't have to do anything. Any value returned is ignored.
 PS.keyUp = function( key, shift, ctrl, options ) {
 	// Uncomment the following code line to inspect first three parameters:
 
-	// PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
-	// Add code here for when a key is released.
+    }
 };
 
 /*
