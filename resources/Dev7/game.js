@@ -48,6 +48,10 @@ Any value returned is ignored.
 [options : Object] = A JavaScript object with optional data properties; see API documentation for details.
 */
 
+var drops = 0;
+var drops_to_win = 10;
+
+var cloudSprite;
 var catUpSprites = [];
 var catDownSprites = [];
 var keys = ["A", "S", "D", "F"]
@@ -57,9 +61,11 @@ var raindrops = [];
 var width = 28;
 var height = 28;
 
-PS.init = function( system, options ) {
-    PS.debug("PS.init called!");
+var game_state = 0;
 
+PS.init = function( system, options ) {
+
+    PS.statusText("Umbrella Cats");
 
     PS.gridSize(width, height);
 
@@ -68,7 +74,15 @@ PS.init = function( system, options ) {
     PS.color(PS.ALL, PS.ALL, PS.COLOR_WHITE);
 
 
-    // Load images
+    // load images and create sprites
+
+    PS.imageLoad("Images/Cloud.png", function(data) {
+        cloudSprite = PS.spriteImage(data);
+        PS.spriteShow(cloudSprite, true);
+        PS.spriteAxis(cloudSprite, 0, 0);
+        PS.spriteMove(cloudSprite, 0, -2);
+    })
+
     var umbrellaCatUpImage, umbrellaCatDownImage;
     PS.imageLoad( "Images/UmbrellaCat-Up.png", function (data) {
         umbrellaCatUpImage = data; // save image ID
@@ -104,22 +118,46 @@ PS.init = function( system, options ) {
         }
     } );
 
-    PS.timerStart(3, PS.raindropFall);
+    PS.timerStart(5, PS.raindropFall);
     PS.timerStart(50, PS.raindropSpawn);
 };
 
+PS.loseGame = function() {
+    game_state = 1;
+    PS.imageLoad("Images/CatLose.png", function (data) {
+        PS.glyph(PS.ALL, PS.ALL, 0);
+        PS.imageBlit(data, 0, 0);
+    });
+}
+
+PS.winGame = function() {
+    game_state = 1;
+    PS.imageLoad("Images/CatWin.png", function (data) {
+        PS.glyph(PS.ALL, PS.ALL, 0);
+        PS.imageBlit(data, 0, 0);
+    });
+}
+
 PS.raindropSpawn = function(){
-    let x = PS.random(width) - 1;
-    raindrops.push({x: x, y: -1});
+    if (game_state != 0) return;
+
+    if(drops < drops_to_win) {
+        drops++;
+        let x = PS.random(width) - 1;
+        raindrops.push({x: x, y: -1});
+    }else{
+        if(raindrops.length == 0){
+            PS.winGame();
+        }
+    }
 }
 
 
 PS.raindropFall = function() {
+    if (game_state != 0) return;
     for(var raindrop of raindrops){
         // check for collisions
         if(raindrop.y > (height - 9)){
-            PS.debug(PS.catAtX(raindrop.x));
-
             // if umbrella of the cat we hit is up, destroy the raindrop
             if(PS.catAtX(raindrop.x) === activeCat){
                 raindrops.splice(raindrops.indexOf(raindrop), 1);
@@ -128,13 +166,16 @@ PS.raindropFall = function() {
             }
 
             // otherwise, lose game
-            PS.debug("you lose!");
+            PS.loseGame();
         }
 
         // move the raindrop
         PS.drawEmpty(raindrop.x, raindrop.y);
         raindrop.y++;
         PS.drawRaindrop(raindrop);
+
+        PS.spriteShow(cloudSprite, false);
+        PS.spriteShow(cloudSprite, true);
     }
 }
 
@@ -163,7 +204,7 @@ PS.drawCats = function(){
     for(let i = 0; i < 4; i++){
         PS.spriteShow(catDownSprites[i], false);
         PS.spriteShow(catUpSprites[i], false);
-            
+
         if (i === activeCat) {
 
             PS.spriteShow(catUpSprites[i], true);
@@ -274,6 +315,8 @@ This function doesn't have to do anything. Any value returned is ignored.
 */
 
 PS.keyDown = function( key, shift, ctrl, options ) {
+
+    if (game_state != 0) return;
 	// Add code here for when a key is pressed.
     switch(key) {
         case 0x0061:
