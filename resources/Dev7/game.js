@@ -67,6 +67,9 @@ PS.init = function( system, options ) {
 
     PS.statusText("Umbrella Cats");
 
+
+    PS.seed(300);
+
     PS.gridSize(width, height);
 
 
@@ -124,6 +127,7 @@ PS.init = function( system, options ) {
 
 PS.loseGame = function() {
     game_state = 1;
+    PS.audioPlay("fx_bloink", {volume: 0.5});
     PS.imageLoad("Images/CatLose.png", function (data) {
         PS.glyph(PS.ALL, PS.ALL, 0);
         PS.imageBlit(data, 0, 0);
@@ -132,6 +136,7 @@ PS.loseGame = function() {
 
 PS.winGame = function() {
     game_state = 1;
+    PS.audioPlay("fx_tada", {volume: 0.5});
     PS.imageLoad("Images/CatWin.png", function (data) {
         PS.glyph(PS.ALL, PS.ALL, 0);
         PS.imageBlit(data, 0, 0);
@@ -162,6 +167,7 @@ PS.raindropFall = function() {
             if(PS.catAtX(raindrop.x) === activeCat){
                 raindrops.splice(raindrops.indexOf(raindrop), 1);
                 PS.drawEmpty(raindrop.x, raindrop.y);
+                PS.audioPlay("fx_drip2", {volume: 0.5});
                 continue;
             }
 
@@ -320,15 +326,19 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	// Add code here for when a key is pressed.
     switch(key) {
         case 0x0061:
+            PS.audioPlay("fx_click", {volume: 0.4});
             activeCat = 0;
             break;
         case 0x0073:
+            PS.audioPlay("fx_click", {volume: 0.4});
             activeCat = 1;
             break;
         case 0x0064:
+            PS.audioPlay("fx_click", {volume: 0.4});
             activeCat = 2;
             break;
         case 0x0066:
+            PS.audioPlay("fx_click", {volume: 0.4});
             activeCat = 3;
             break;
 
