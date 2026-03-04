@@ -162,6 +162,19 @@ PS.drawBackground = function(){
     }
 };
 
+PS.drawRestartPrompt = function(x, y){
+    let chars1 = ["R", " ", "T", "O", " "];
+    let chars2 = ["R", "E", "S", "T", "A", "R", "T"];
+    for(let i = 0; i < chars1.length; i++){
+        PS.glyph(x + i, y, chars1[i]);
+        PS.glyphColor(x + i, y, PS.COLOR_WHITE);
+    }
+    for(let i = 0; i < chars2.length; i++){
+        PS.glyph(x + i, y + 1, chars2[i]);
+        PS.glyphColor(x + i, y + 1, PS.COLOR_WHITE);
+    }
+};
+
 PS.loseGame = function() {
     PS.timerStop(spawn_timer);
     game_state = 1;
@@ -169,8 +182,10 @@ PS.loseGame = function() {
     PS.imageLoad("Images/CatLose.png", function (data) {
         PS.glyph(PS.ALL, PS.ALL, 0);
         PS.imageBlit(data, 0, 0);
+        PS.drawRestartPrompt(20, 10);
     });
-}
+
+};
 
 PS.winGame = function() {
     PS.timerStop(spawn_timer);
@@ -179,6 +194,7 @@ PS.winGame = function() {
     PS.imageLoad("Images/CatWin.png", function (data) {
         PS.glyph(PS.ALL, PS.ALL, 0);
         PS.imageBlit(data, 0, 0);
+        PS.drawRestartPrompt(20, 15);
     });
 }
 
@@ -371,6 +387,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
             raindrops = [];
             drops = 0;
             activeCat = -1;
+            PS.glyph(PS.ALL, PS.ALL, 0);
             spawn_timer = PS.timerStart(50, PS.raindropSpawn);
             PS.drawBackground();
             PS.drawCats();
